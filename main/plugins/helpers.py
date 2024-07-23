@@ -7,24 +7,24 @@ import asyncio, subprocess, re, os, time
 from pathlib import Path
 from datetime import datetime as dt
 
-#Join private chat-------------------------------------------------------------------------------------------------------------
+# 加入私有聊天-------------------------------------------------------------------------------------------------------------
 
 async def join(client, invite_link):
     try:
         await client.join_chat(invite_link)
-        return "Successfully joined the Channel"
+        return "成功加入频道"
     except UserAlreadyParticipant:
-        return "User is already a participant."
+        return "用户已经是参与者。"
     except (InviteHashInvalid, InviteHashExpired):
-        return "Could not join. Maybe your link is expired or Invalid."
+        return "无法加入。可能您的链接已过期或无效。"
     except FloodWait:
-        return "Too many requests, try again later."
+        return "请求过多，请稍后再试。"
     except Exception as e:
         print(e)
-        return "Could not join, try joining manually."
+        return "无法加入，请手动尝试加入。"
     
-#Regex---------------------------------------------------------------------------------------------------------------
-#to get the url from event
+# 正则表达式---------------------------------------------------------------------------------------------------------------
+# 从事件中获取 URL
 
 def get_link(string):
     regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
@@ -38,16 +38,16 @@ def get_link(string):
     except Exception:
         return False
     
-#Screenshot---------------------------------------------------------------------------------------------------------------
+# 截图---------------------------------------------------------------------------------------------------------------
 
 def hhmmss(seconds):
-    x = time.strftime('%H:%M:%S',time.gmtime(seconds))
+    x = time.strftime('%H:%M:%S', time.gmtime(seconds))
     return x
 
 async def screenshot(video, duration, sender):
     if os.path.exists(f'{sender}.jpg'):
         return f'{sender}.jpg'
-    time_stamp = hhmmss(int(duration)/2)
+    time_stamp = hhmmss(int(duration) / 2)
     out = dt.now().isoformat("_", "seconds") + ".jpg"
     cmd = ["ffmpeg",
            "-ss",
