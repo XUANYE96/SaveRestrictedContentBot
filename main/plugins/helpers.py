@@ -1,3 +1,4 @@
+# 从私有频道获取链接
 #Github.com/Vasusen-code
 
 from pyrogram.errors import FloodWait, InviteHashInvalid, InviteHashExpired, UserAlreadyParticipant
