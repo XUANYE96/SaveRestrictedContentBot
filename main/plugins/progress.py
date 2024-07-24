@@ -1,3 +1,4 @@
+# 下载进度显示
 import math
 import os
 import time
@@ -16,7 +17,7 @@ async def progress_for_pyrogram(
     message,
     start
 ):
-    now = time.time()
+    现在 = time.time()
     diff = now - start
     if round(diff % 10.00) == 0 or current == total:
         percentage = current * 100 / total
