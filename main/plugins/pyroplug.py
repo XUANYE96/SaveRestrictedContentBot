@@ -1,5 +1,3 @@
-#Github.com-Vasusen-code
-
 import asyncio, time, os
 
 from .. import bot as Drone
@@ -15,14 +13,15 @@ from telethon.tl.types import DocumentAttributeVideo
 from telethon import events
 
 def thumbnail(sender):
+    """ 获取缩略图文件的路径 """
     if os.path.exists(f'{sender}.jpg'):
         return f'{sender}.jpg'
     else:
-         return None
-      
+        return None
+
 async def get_msg(userbot, client, bot, sender, edit_id, msg_link, i):
-    
-    """ userbot: PyrogramUserBot
+    """ 处理消息并下载或转发媒体
+    userbot: PyrogramUserBot
     client: PyrogramBotClient
     bot: TelethonBotClient """
     
@@ -30,51 +29,51 @@ async def get_msg(userbot, client, bot, sender, edit_id, msg_link, i):
     chat = ""
     round_message = False
     if "?single" in msg_link:
-        msg_link = msg_link.split("?single")[0]
-    msg_id = int(msg_link.split("/")[-1]) + int(i)
+        msg_link = msg_link.split("?single")[0]  # 移除链接中的单个参数
+    msg_id = int(msg_link.split("/")[-1]) + int(i)  # 计算消息ID
     height, width, duration, thumb_path = 90, 90, 0, None
     if ('t.me/c/' in msg_link) or ('t.me/b/' in msg_link):
         if 't.me/b/' in msg_link:
-            chat = str(msg_link.split("/")[-2])
+            chat = str(msg_link.split("/")[-2])  # 频道ID
         else:
-            chat = int('-100' + str(msg_link.split("/")[-2]))
+            chat = int('-100' + str(msg_link.split("/")[-2]))  # 群组ID
         file = ""
         try:
             msg = await userbot.get_messages(chat, msg_id)
             if msg.media:
-                if msg.media==MessageMediaType.WEB_PAGE:
-                    edit = await client.edit_message_text(sender, edit_id, "Cloning.")
+                if msg.media == MessageMediaType.WEB_PAGE:
+                    edit = await client.edit_message_text(sender, edit_id, "克隆中。")
                     await client.send_message(sender, msg.text.markdown)
                     await edit.delete()
                     return
             if not msg.media:
                 if msg.text:
-                    edit = await client.edit_message_text(sender, edit_id, "Cloning.")
+                    edit = await client.edit_message_text(sender, edit_id, "克隆中。")
                     await client.send_message(sender, msg.text.markdown)
                     await edit.delete()
                     return
-            edit = await client.edit_message_text(sender, edit_id, "Trying to Download.")
+            edit = await client.edit_message_text(sender, edit_id, "正在尝试下载。")
             file = await userbot.download_media(
                 msg,
                 progress=progress_for_pyrogram,
                 progress_args=(
                     client,
-                    "**DOWNLOADING:**\n",
+                    "**正在下载:**\n",
                     edit,
                     time.time()
                 )
             )
             print(file)
-            await edit.edit('Preparing to Upload!')
+            await edit.edit('准备上传!')
             caption = None
             if msg.caption is not None:
                 caption = msg.caption
-            if msg.media==MessageMediaType.VIDEO_NOTE:
+            if msg.media == MessageMediaType.VIDEO_NOTE:
                 round_message = True
-                print("Trying to get metadata")
+                print("尝试获取视频元数据")
                 data = video_metadata(file)
                 height, width, duration = data["height"], data["width"], data["duration"]
-                print(f'd: {duration}, w: {width}, h:{height}')
+                print(f'持续时间: {duration}, 宽度: {width}, 高度: {height}')
                 try:
                     thumb_path = await screenshot(file, duration, sender)
                 except Exception:
@@ -87,16 +86,16 @@ async def get_msg(userbot, client, bot, sender, edit_id, msg_link, i):
                     progress=progress_for_pyrogram,
                     progress_args=(
                         client,
-                        '**UPLOADING:**\n',
+                        '**正在上传:**\n',
                         edit,
                         time.time()
                     )
                 )
-            elif msg.media==MessageMediaType.VIDEO and msg.video.mime_type in ["video/mp4", "video/x-matroska"]:
-                print("Trying to get metadata")
+            elif msg.media == MessageMediaType.VIDEO and msg.video.mime_type in ["video/mp4", "video/x-matroska"]:
+                print("尝试获取视频元数据")
                 data = video_metadata(file)
                 height, width, duration = data["height"], data["width"], data["duration"]
-                print(f'd: {duration}, w: {width}, h:{height}')
+                print(f'持续时间: {duration}, 宽度: {width}, 高度: {height}')
                 try:
                     thumb_path = await screenshot(file, duration, sender)
                 except Exception:
@@ -111,17 +110,17 @@ async def get_msg(userbot, client, bot, sender, edit_id, msg_link, i):
                     progress=progress_for_pyrogram,
                     progress_args=(
                         client,
-                        '**UPLOADING:**\n',
+                        '**正在上传:**\n',
                         edit,
                         time.time()
                     )
                 )
             
-            elif msg.media==MessageMediaType.PHOTO:
-                await edit.edit("Uploading photo.")
+            elif msg.media == MessageMediaType.PHOTO:
+                await edit.edit("正在上传照片。")
                 await bot.send_file(sender, file, caption=caption)
             else:
-                thumb_path=thumbnail(sender)
+                thumb_path = thumbnail(sender)
                 await client.send_document(
                     sender,
                     file, 
@@ -130,7 +129,7 @@ async def get_msg(userbot, client, bot, sender, edit_id, msg_link, i):
                     progress=progress_for_pyrogram,
                     progress_args=(
                         client,
-                        '**UPLOADING:**\n',
+                        '**正在上传:**\n',
                         edit,
                         time.time()
                     )
@@ -143,7 +142,7 @@ async def get_msg(userbot, client, bot, sender, edit_id, msg_link, i):
                 pass
             await edit.delete()
         except (ChannelBanned, ChannelInvalid, ChannelPrivate, ChatIdInvalid, ChatInvalid):
-            await client.edit_message_text(sender, edit_id, "Have you joined the channel?")
+            await client.edit_message_text(sender, edit_id, "您是否加入了频道？")
             return
         except PeerIdInvalid:
             chat = msg_link.split("/")[-3]
@@ -160,31 +159,31 @@ async def get_msg(userbot, client, bot, sender, edit_id, msg_link, i):
             or "SendMediaRequest" in str(e) \
             or str(e) == "File size equals to 0 B":
                 try: 
-                    if msg.media==MessageMediaType.VIDEO and msg.video.mime_type in ["video/mp4", "video/x-matroska"]:
+                    if msg.media == MessageMediaType.VIDEO and msg.video.mime_type in ["video/mp4", "video/x-matroska"]:
                         UT = time.time()
-                        uploader = await fast_upload(f'{file}', f'{file}', UT, bot, edit, '**UPLOADING:**')
+                        uploader = await fast_upload(f'{file}', f'{file}', UT, bot, edit, '**正在上传:**')
                         attributes = [DocumentAttributeVideo(duration=duration, w=width, h=height, round_message=round_message, supports_streaming=True)] 
                         await bot.send_file(sender, uploader, caption=caption, thumb=thumb_path, attributes=attributes, force_document=False)
-                    elif msg.media==MessageMediaType.VIDEO_NOTE:
-                        uploader = await fast_upload(f'{file}', f'{file}', UT, bot, edit, '**UPLOADING:**')
+                    elif msg.media == MessageMediaType.VIDEO_NOTE:
+                        uploader = await fast_upload(f'{file}', f'{file}', UT, bot, edit, '**正在上传:**')
                         attributes = [DocumentAttributeVideo(duration=duration, w=width, h=height, round_message=round_message, supports_streaming=True)] 
                         await bot.send_file(sender, uploader, caption=caption, thumb=thumb_path, attributes=attributes, force_document=False)
                     else:
                         UT = time.time()
-                        uploader = await fast_upload(f'{file}', f'{file}', UT, bot, edit, '**UPLOADING:**')
+                        uploader = await fast_upload(f'{file}', f'{file}', UT, bot, edit, '**正在上传:**')
                         await bot.send_file(sender, uploader, caption=caption, thumb=thumb_path, force_document=True)
                     if os.path.isfile(file) == True:
                         os.remove(file)
                 except Exception as e:
                     print(e)
-                    await client.edit_message_text(sender, edit_id, f'Failed to save: `{msg_link}`\n\nError: {str(e)}')
+                    await client.edit_message_text(sender, edit_id, f'保存失败: `{msg_link}`\n\n错误: {str(e)}')
                     try:
                         os.remove(file)
                     except Exception:
                         return
                     return 
             else:
-                await client.edit_message_text(sender, edit_id, f'Failed to save: `{msg_link}`\n\nError: {str(e)}')
+                await client.edit_message_text(sender, edit_id, f'保存失败: `{msg_link}`\n\n错误: {str(e)}')
                 try:
                     os.remove(file)
                 except Exception:
@@ -198,20 +197,20 @@ async def get_msg(userbot, client, bot, sender, edit_id, msg_link, i):
             pass
         await edit.delete()
     else:
-        edit = await client.edit_message_text(sender, edit_id, "Cloning.")
+        edit = await client.edit_message_text(sender, edit_id, "克隆中。")
         chat =  msg_link.split("t.me")[1].split("/")[1]
         try:
             msg = await client.get_messages(chat, msg_id)
             if msg.empty:
                 new_link = f't.me/b/{chat}/{int(msg_id)}'
-                #recurrsion 
+                # 递归调用
                 return await get_msg(userbot, client, bot, sender, edit_id, new_link, i)
             await client.copy_message(sender, chat, msg_id)
         except Exception as e:
             print(e)
-            return await client.edit_message_text(sender, edit_id, f'Failed to save: `{msg_link}`\n\nError: {str(e)}')
+            return await client.edit_message_text(sender, edit_id, f'保存失败: `{msg_link}`\n\n错误: {str(e)}')
         await edit.delete()
         
 async def get_bulk_msg(userbot, client, sender, msg_link, i):
-    x = await client.send_message(sender, "Processing!")
+    x = await client.send_message(sender, "正在处理!")
     await get_msg(userbot, client, Drone, sender, x.id, msg_link, i)
